@@ -12,6 +12,7 @@ var updateSuccess_i18n;
 var updateFailure_i18n;
 var regenerate_i18n;
 var deleteRound_i18n;
+var editRound_i18n;
 var renameChat_i18n;
 var validFileName_i18n;
 
@@ -25,6 +26,7 @@ function setLoclize() {
     updateFailure_i18n = gradioApp().querySelector('#updateFailure_i18n').innerText;
     regenerate_i18n = gradioApp().querySelector('#regenerate_i18n').innerText;
     deleteRound_i18n = gradioApp().querySelector('#deleteRound_i18n').innerText;
+    editRound_i18n = gradioApp().querySelector("#editRound_i18n").innerText;
     renameChat_i18n = gradioApp().querySelector('#renameChat_i18n').innerText;
     validFileName_i18n = gradioApp().querySelector('#validFileName_i18n').innerText;
 }

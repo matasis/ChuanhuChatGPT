@@ -65,6 +65,12 @@ def delete_first_conversation(current_model, *args):
 def delete_last_conversation(current_model, *args):
     return current_model.delete_last_conversation(*args)
 
+def edit_last_conversation(current_model, *args):
+    return current_model.edit_last_conversation(*args)
+
+def change_last_conversation(current_model, *args):
+    return current_model.change_last_conversation(*args)
+
 def set_system_prompt(current_model, *args):
     return current_model.set_system_prompt(*args)
 

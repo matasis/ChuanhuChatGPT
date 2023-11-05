@@ -3,6 +3,7 @@ function openSettingBox() {
     chuanhuPopup.classList.add('showBox');
     popupWrapper.classList.add('showBox');
     settingBox.classList.remove('hideBox');
+    editBox.classList.add('hideBox');
     trainingBox.classList.add('hideBox');
     showMask("box");
 
@@ -13,7 +14,18 @@ function openTrainingBox() {
     popupWrapper.classList.add('showBox');
     trainingBox.classList.remove('hideBox');
     settingBox.classList.add('hideBox');
+    editBox.classList.add('hideBox')
     showMask("box");
+}
+
+function openEditBox() {
+    chuanhuPopup.classList.add('showBox');
+    popupWrapper.classList.add('showBox');
+    settingBox.classList.add('hideBox');
+    editBox.classList.remove('hideBox');
+    trainingBox.classList.add('hideBox');
+    showMask("box");
+
 }
 
 function openChatMore() {
@@ -78,6 +90,7 @@ function closeBox() {
     popupWrapper.classList.remove('showBox');
     trainingBox.classList.add('hideBox');
     settingBox.classList.add('hideBox');
+    editBox.classList.add('hideBox')
     document.querySelector('.chuanhu-mask')?.remove();
     document.body.classList.remove('popup-open');
 }

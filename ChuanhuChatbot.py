@@ -179,6 +179,9 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             with gr.Column(min_width=120, scale=1):
                                 delLastBtn = gr.Button(
                                     i18n("🗑️ 删除最新对话"), elem_id="gr-dellast-btn")
+                            with gr.Column(min_width=120, scale=1):
+                                editLastBtn = gr.Button(
+                                    i18n("✒️ 编辑最新对话"), elem_id="gr-editlast-btn")
                             with gr.Row(visible=False) as like_dislike_area:
                                 with gr.Column(min_width=20, scale=1):
                                     likeBtn = gr.Button(
@@ -468,6 +471,26 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             add_to_models_btn = gr.Button(
                                 i18n("添加训练好的模型到模型列表"), interactive=False)
 
+            with gr.Box(elem_id="conversation-edit"):
+                with gr.Row():
+                    gr.Markdown("## "+i18n("修改"))
+                    gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn")
+                with gr.Column():
+                    userInputTxt = gr.Textbox(
+                        show_label=True,
+                        label=i18n("用户输入"),
+                        value="",
+                        lines=2,
+                        )
+                    aiInputTxt = gr.Textbox(
+                        show_label=True,
+                        label=i18n("AI回答"),
+                        value="",
+                        lines=5,
+                        )
+                    submitDialogChangeBtn = gr.Button("保存修改")
+
             with gr.Box(elem_id="web-config", visible=False):
                 gr.HTML(get_html('web_config.html').format(
                     enableCheckUpdate_config=check_update,
@@ -482,6 +505,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         "更新失败，请尝试[手动更新](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#手动更新)"),
                     regenerate_i18n=i18n("重新生成"),
                     deleteRound_i18n=i18n("删除这轮问答"),
+                    editRound_i18n=i18n("编辑这组对话"),
                     renameChat_i18n=i18n("重命名该对话"),
                     validFileName_i18n=i18n("请输入有效的文件名，不要包含以下特殊字符："),
                 ))
@@ -630,6 +654,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         show_progress=False
     )
 
+    editLastBtn.click(
+        edit_last_conversation,
+        [current_model, chatbot],
+        [userInputTxt, aiInputTxt, status_display],
+        show_progress=False
+    )
+
     likeBtn.click(
         like,
         [current_model],
@@ -641,6 +672,16 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         dislike,
         [current_model],
         [status_display],
+        show_progress=False
+    )
+
+    # 修改记录
+    # userDialog.update()
+    # gptDialog.update()
+    submitDialogChangeBtn.click(
+        change_last_conversation,
+        [current_model,chatbot,userInputTxt,aiInputTxt],
+        [chatbot,status_display],
         show_progress=False
     )
 

@@ -673,6 +673,29 @@ class BaseLLMModel:
         self.auto_save(chatbot)
         return chatbot, msg
 
+    def edit_last_conversation(self,chatbot):
+        if len(chatbot) > 0 and STANDARD_ERROR_MSG in chatbot[-1][1]:
+            msg = "由于包含报错信息，无法获得记录。"
+            return "","",msg
+        if len(self.history) > 0:
+            msg = "获得一组记录"
+            return self.history[-2]["content"],self.history[-1]["content"],msg
+        msg = "记录为空"
+        return "","",msg
+        
+    def change_last_conversation(self,chatbot,user_input,ai_input):
+        if user_input is None or ai_input is None:
+            msg = "修改的内容为空"
+            return chatbot, msg
+        if len(self.history) > 0:
+            self.history[-2]["content"] = user_input
+            self.history[-1]["content"] = ai_input
+        if len(chatbot) > 0:
+            chatbot[-1][0] = convert_user_before_marked(user_input)
+            chatbot[-1][1] = convert_bot_before_marked(ai_input)
+        msg = "修改一组记录"
+        return chatbot, msg
+
     def token_message(self, token_lst=None):
         if token_lst is None:
             token_lst = self.all_token_counts
