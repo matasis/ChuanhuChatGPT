@@ -187,7 +187,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                     dislikeBtn = gr.Button(
                                         "👎", elem_id="gr-dislike-btn")
 
-        with gr.Column(elem_id="toolbox-area", scale=1):
+        with gr.Column(elem_id="toolbox-area", scale=2):
             # For CSS setting, there is an extra box. Don't remove it.
             with gr.Box(elem_id="chuanhu-toolbox"):
                 with gr.Row():
@@ -231,6 +231,17 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                                 multiselect=False,
                                                 container=False,
                                             )
+                                    with gr.Row():
+                                        with gr.Column(scale=6):
+                                            saveTemplateName = gr.Textbox(
+                                                show_label=True,
+                                                placeholder=i18n("设置名称:"),
+                                                label=i18n("设置保存名称"),
+                                                value=i18n("template1"),
+                                                container=False,
+                                            )
+                                        with gr.Column(scale=1):
+                                            saveTemplateBtn = gr.Button(i18n("💾 保存模版"))
                         gr.Markdown("---", elem_classes="hr-line")
                         with gr.Accordion(label=i18n("知识库"), open=True):
                             use_websearch_checkbox = gr.Checkbox(label=i18n(
@@ -662,6 +673,12 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     templateSelectDropdown.change(
         get_template_content,
         [promptTemplates, templateSelectDropdown, systemPromptTxt],
+        [systemPromptTxt],
+        show_progress=True,
+    )
+    saveTemplateBtn.click(
+        save_template,
+        [templateFileSelectDropdown,saveTemplateName,systemPromptTxt],
         [systemPromptTxt],
         show_progress=True,
     )

@@ -466,6 +466,17 @@ def get_template_content(templates, selection, original_system_prompt):
         return original_system_prompt
 
 
+def save_template(filename,template_name,prompt):
+    logging.debug(f"将模板{template_name}保存到{filename}")
+    with open(os.path.join(TEMPLATES_DIR,filename),"r+",encoding="utf-8") as f:
+        data = json.load(f)
+        data.append({"act":template_name,"prompt":prompt})
+        f.seek(0)
+        json.dump(data,f,ensure_ascii=False)
+        f.close()
+    return prompt
+
+
 def reset_textbox():
     logging.debug("重置文本框")
     return gr.update(value="")
