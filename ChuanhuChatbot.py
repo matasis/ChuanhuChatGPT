@@ -147,6 +147,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 single_turn_label=i18n("单轮对话"),
                                 websearch_label=i18n("在线搜索"),
                                 upload_file_label=i18n("上传文件"),
+                                exchange_roles_label=i18n("交换角色"),
+                                roleplay_label=i18n("角色扮演"),
                                 uploaded_files_label=i18n("知识库文件"),
                                 uploaded_files_tip=i18n("在工具箱中管理知识库文件")
                             ))
@@ -182,6 +184,9 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             with gr.Column(min_width=120, scale=1):
                                 editLastBtn = gr.Button(
                                     i18n("✒️ 编辑最新对话"), elem_id="gr-editlast-btn")
+                            with gr.Column(min_width=120, scale=1):
+                                exchageRolesBtn = gr.Button(
+                                    i18n("🔃 交换角色"), elem_id="gr-exchange-btn")
                             with gr.Row(visible=False) as like_dislike_area:
                                 with gr.Column(min_width=20, scale=1):
                                     likeBtn = gr.Button(
@@ -245,8 +250,15 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                             )
                                         with gr.Column(scale=1):
                                             saveTemplateBtn = gr.Button(i18n("💾 保存模版"))
+                        with gr.Accordion(label="EX Prompt", open=False):
+                            exPromptTxt = gr.Textbox(
+                                show_label=True,
+                                placeholder=i18n("在这里输入EX Prompt..."),
+                                label="EX prompt",
+                                lines=8
+                            )
                         gr.Markdown("---", elem_classes="hr-line")
-                        with gr.Accordion(label=i18n("知识库"), open=True):
+                        with gr.Accordion(label=i18n("知识库"), open=False):
                             use_websearch_checkbox = gr.Checkbox(label=i18n(
                                 "使用在线搜索"), value=False, elem_classes="switch-checkbox", elem_id="gr-websearch-cb", visible=False)
                             index_files = gr.Files(label=i18n(
@@ -397,6 +409,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         )
                         single_turn_checkbox = gr.Checkbox(label=i18n(
                             "单轮对话"), value=False, elem_classes="switch-checkbox", elem_id="gr-single-session-cb", visible=False)
+                        roleplay_mode_checkbox = gr.Checkbox(label=i18n(
+                            "角色扮演"), value=False, elem_classes="switch-checkbox", elem_id="gr-roleplay-mode-cb", visible=False)
                         # checkUpdateBtn = gr.Button(i18n("🔄 检查更新..."), visible=check_update)
 
                     with gr.Tab(i18n("网络")):
@@ -516,6 +530,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     visible=False, elem_classes="invisible-btn", elem_id="change-single-session-btn")
                 changeOnlineSearchBtn = gr.Button(
                     visible=False, elem_classes="invisible-btn", elem_id="change-online-search-btn")
+                changeRoleplayModeBtn = gr.Button(
+                    visible=False, elem_classes="invisible-btn", elem_id="change-roleplay-mode-btn")
                 historySelectBtn = gr.Button(
                     visible=False, elem_classes="invisible-btn", elem_id="history-select-btn")  # Not used
 
@@ -533,14 +549,14 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
             model_name=MODELS[DEFAULT_MODEL], access_key=my_api_key)[0]
         current_model.set_user_identifier(user_name)
         if not hide_history_when_not_logged_in or user_name:
-            filename, system_prompt, chatbot = current_model.auto_load()
+            filename, system_prompt, chatbot, ex_ptompt = current_model.auto_load()
         else:
             system_prompt = gr.update()
             filename = gr.update()
             chatbot = gr.Chatbot.update(label=MODELS[DEFAULT_MODEL])
-        return user_info, user_name, current_model, toggle_like_btn_visibility(DEFAULT_MODEL), filename, system_prompt, chatbot, init_history_list(user_name)
+        return user_info, user_name, current_model, toggle_like_btn_visibility(DEFAULT_MODEL), filename, system_prompt, chatbot, init_history_list(user_name), ex_ptompt
     demo.load(create_greeting, inputs=None, outputs=[
-              user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, chatbot, historySelectList], api_name="load")
+              user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, chatbot, historySelectList, exPromptTxt], api_name="load")
     chatgpt_predict_args = dict(
         fn=predict,
         inputs=[
@@ -584,7 +600,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     load_history_from_file_args = dict(
         fn=load_chat_history,
         inputs=[current_model, historySelectList, user_name],
-        outputs=[saveFileName, systemPromptTxt, chatbot]
+        outputs=[saveFileName, systemPromptTxt, chatbot, exPromptTxt]
     )
 
     refresh_history_args = dict(
@@ -661,6 +677,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         show_progress=False
     )
 
+    exchageRolesBtn.click(
+        exchange_roles,
+        [current_model, chatbot, user_input],
+        [chatbot, user_input, systemPromptTxt, exPromptTxt, status_display],
+        show_progress=False
+    )
+
     likeBtn.click(
         like,
         [current_model],
@@ -699,10 +722,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                  like_dislike_area], show_progress=False)
     lora_select_dropdown.change(get_model, [model_select_dropdown, lora_select_dropdown, user_api_key, temperature_slider,
                                 top_p_slider, systemPromptTxt, user_name, current_model], [current_model, status_display, chatbot], show_progress=True)
+    roleplay_mode_checkbox.change(
+        set_roleplay_mode, [current_model, roleplay_mode_checkbox], None)
 
     # Template
     systemPromptTxt.change(set_system_prompt, [
                            current_model, systemPromptTxt], None)
+    exPromptTxt.change(set_ex_prompt, [current_model, systemPromptTxt, exPromptTxt], None)
     templateRefreshBtn.click(get_template_dropdown, None, [
                              templateFileSelectDropdown])
     templateFileSelectDropdown.input(
@@ -836,10 +862,16 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         outputs=[use_websearch_checkbox],
         _js='(a)=>{return bgChangeOnlineSearch(a);}'
     )
+    changeRoleplayModeBtn.click(
+        fn=lambda value: gr.Checkbox.update(value=value),
+        inputs=[roleplay_mode_checkbox],
+        outputs=[roleplay_mode_checkbox],
+        _js='(a)=>{return bgChangeRoleplayMode(a);}'
+    )
     historySelectBtn.click(  # This is an experimental feature... Not actually used.
         fn=load_chat_history,
         inputs=[current_model, historySelectList],
-        outputs=[saveFileName, systemPromptTxt, chatbot],
+        outputs=[saveFileName, systemPromptTxt, chatbot, exPromptTxt],
         _js='(a,b)=>{return bgSelectHistory(a,b);}'
     )
 

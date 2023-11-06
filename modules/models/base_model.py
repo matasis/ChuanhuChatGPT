@@ -215,6 +215,9 @@ class BaseLLMModel:
             self.token_upper_limit = DEFAULT_TOKEN_LIMIT
         self.interrupted = False
         self.system_prompt = system_prompt
+        self.user1_prompt = ""
+        self.user2_prompt = ""
+        self.roleplay_mode = False
         self.api_key = None
         self.need_api_key = False
         self.single_turn = False
@@ -696,6 +699,53 @@ class BaseLLMModel:
         msg = "修改一组记录"
         return chatbot, msg
 
+    def set_ex_prompt(self, system_prompt, ex_prompt):
+        self.user1_prompt = system_prompt
+        self.user2_prompt = ex_prompt
+
+    def set_roleplay_mode(self, roleplay_mode):
+        self.roleplay_mode = roleplay_mode
+        
+    def exchange_roles(self, chatbot, user_input):
+        if len(chatbot) > 0 and STANDARD_ERROR_MSG in chatbot[-1][1]:
+            msg = "由于包含报错信息，无法获得记录。"
+            return chatbot, "", self.system_prompt, self.user2_prompt, msg
+        msg = "交换角色"
+        history_len = len(self.history)
+        history = []
+        for data in self.history:
+            if data["role"] == "user":
+                data["role"] = "assistant"
+            else:
+                data["role"] = "user"
+            history.append(data)
+        if history_len % 2 == 1 and self.history[0]["role"] == "user":
+            history.append({'role':'assistant', 'content':user_input})
+        elif history_len %2 == 0 and self.history[0]["role"] == "assistant":
+            user_input = history[-1]["content"]
+            history = history[:-1]
+        self.history = history
+        newbot = []
+        index = 0
+        while index < len(self.history):
+            if self.history[0]["role"] == "assistant":
+                if index == 0: 
+                    newbot.append([convert_user_before_marked(""),convert_bot_before_marked(self.history[0]["content"])])
+                    index += 1
+                else:
+                    newbot.append([convert_user_before_marked(self.history[index]["content"]),convert_bot_before_marked(self.history[index+1]["content"])])
+                    index += 2
+            else:
+                newbot.append([convert_user_before_marked(self.history[index]["content"]),convert_bot_before_marked(self.history[index+1]["content"])])
+                index += 2
+        msg = "转换了{}条对话".format(str(index-1))
+        if self.roleplay_mode:
+            self.system_prompt = self.user2_prompt
+            self.user2_prompt = self.user1_prompt
+            self.user1_prompt = self.system_prompt
+
+        return newbot, user_input, self.system_prompt, self.user2_prompt, msg
+
     def token_message(self, token_lst=None):
         if token_lst is None:
             token_lst = self.all_token_counts
@@ -719,7 +769,7 @@ class BaseLLMModel:
         filename = os.path.basename(full_path)
 
         self.history_file_path = filename
-        save_file(filename, self.system_prompt, self.history, chatbot, user_name)
+        save_file(filename, self.system_prompt, self.history, chatbot, user_name, self.roleplay_mode, self.user2_prompt)
         return init_history_list(user_name)
 
     def auto_name_chat_history(self, name_chat_method, user_question, chatbot, user_name, single_turn_checkbox):
@@ -731,15 +781,15 @@ class BaseLLMModel:
             return gr.update()
 
     def auto_save(self, chatbot):
-        save_file(self.history_file_path, self.system_prompt,
-                  self.history, chatbot, self.user_identifier)
+        save_file(self.history_file_path, self.system_prompt, 
+                  self.history, chatbot, self.user_identifier, self.roleplay_mode, self.user2_prompt)
 
     def export_markdown(self, filename, chatbot, user_name):
         if filename == "":
             return
         if not filename.endswith(".md"):
             filename += ".md"
-        save_file(filename, self.system_prompt, self.history, chatbot, user_name)
+        save_file(filename, self.system_prompt, self.history, chatbot, user_name, self.roleplay_mode, self.user2_prompt)
 
     def load_chat_history(self, new_history_file_path=None, username=None):
         logging.debug(f"{self.user_identifier} 加载对话历史中……")
@@ -775,13 +825,20 @@ class BaseLLMModel:
                     logging.info(new_history)
             except:
                 pass
-            if len(json_s["chatbot"]) < len(json_s["history"]):
+            if len(json_s["chatbot"])*2 < len(json_s["history"]):
                 logging.info("Trimming corrupted history...")
                 json_s["history"] = json_s["history"][-len(json_s["chatbot"]):]
                 logging.info(f"Trimmed history: {json_s['history']}")
             logging.debug(f"{self.user_identifier} 加载对话历史完毕")
             self.history = json_s["history"]
-            return os.path.basename(self.history_file_path), json_s["system"], json_s["chatbot"]
+            try:
+                if json_s["roleplay"]:
+                    ex_template = json_s["ex"]
+                else:
+                    ex_template = ""
+            except:
+                ex_template = ""
+            return os.path.basename(self.history_file_path), json_s["system"], json_s["chatbot"], ex_template
         except:
             # 没有对话历史或者对话历史解析失败
             logging.info(f"没有找到对话历史记录 {self.history_file_path}")
@@ -812,9 +869,9 @@ class BaseLLMModel:
                 self.user_identifier)
         else:
             self.history_file_path = filepath
-        filename, system_prompt, chatbot = self.load_chat_history()
+        filename, system_prompt, chatbot, ex_prompt = self.load_chat_history()
         filename = filename[:-5]
-        return filename, system_prompt, chatbot
+        return filename, system_prompt, chatbot, ex_prompt
 
     def like(self):
         """like the last response, implement if needed

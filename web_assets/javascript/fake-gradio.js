@@ -55,13 +55,17 @@ function transUpload() {
 // checkbox
 var grSingleSessionCB;
 var grOnlineSearchCB;
+var grRoleplayModeCB;
 var chatbotSingleSessionCB;
 var chatbotOnlineSearchCB;
+var chatbotRoleplayModeCB;
 function setCheckboxes() {
     chatbotSingleSessionCB = gradioApp().querySelector('input[name="single-session-cb"]');
     chatbotOnlineSearchCB = gradioApp().querySelector('input[name="online-search-cb"]');
+    chatbotRoleplayModeCB = gradioApp().querySelector('input[name="roleplay-mode-cb"]')
     grSingleSessionCB = gradioApp().querySelector("#gr-single-session-cb > label > input");
     grOnlineSearchCB = gradioApp().querySelector("#gr-websearch-cb > label> input");
+    grRoleplayModeCB = gradioApp().querySelector("#gr-roleplay-mode-cb > label> input")
 
     chatbotSingleSessionCB.addEventListener('change', (e) => {
         grSingleSessionCB.checked = chatbotSingleSessionCB.checked;
@@ -71,12 +75,19 @@ function setCheckboxes() {
         grOnlineSearchCB.checked = chatbotOnlineSearchCB.checked;
         gradioApp().querySelector('#change-online-search-btn').click();
     });
+    chatbotRoleplayModeCB.addEventListener('change', () => {
+        grRoleplayModeCB.checked = chatbotRoleplayModeCB.checked;
+        gradioApp().querySelector('#change-roleplay-mode-btn').click();
+    })
     grSingleSessionCB.addEventListener('change', (e) => {
         chatbotSingleSessionCB.checked = grSingleSessionCB.checked;
     });
     grOnlineSearchCB.addEventListener('change', (e) => {
         chatbotOnlineSearchCB.checked = grOnlineSearchCB.checked;
     });
+    grRoleplayModeCB.addEventListener('change', () => {
+        chatbotRoleplayModeCB.checked = grOnlineSearchCB.checked;
+    })
 }
 
 function bgChangeSingleSession() {
@@ -87,6 +98,10 @@ function bgChangeSingleSession() {
 function bgChangeOnlineSearch() {
     // const grOnlineSearchCB = gradioApp().querySelector("#gr-websearch-cb > label> input");
     let a = chatbotOnlineSearchCB.checked;
+    return [a];
+}
+function bgChangeRoleplayMode() {
+    let a = chatbotRoleplayModeCB.checked;
     return [a];
 }
 

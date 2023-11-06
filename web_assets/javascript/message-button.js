@@ -158,6 +158,12 @@ function addLatestMessageButtons(botElement) {
         openEditBox();
     });
 
+    var exRoles = gradioApp().querySelector("#exchange-roles-btn");
+    var gradioExchangeBtn = gradioApp().querySelector("#gr-exchange-btn")
+    exRoles.addEventListener('click', () => {
+        gradioExchangeBtn.click();
+    });
+
     messageBtnRowLeading.appendChild(regenerateButton);
     messageBtnRowLeading.appendChild(deleteButton);
     messageBtnRowLeading.appendChild(editButton);

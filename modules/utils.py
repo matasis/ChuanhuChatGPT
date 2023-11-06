@@ -71,6 +71,12 @@ def edit_last_conversation(current_model, *args):
 def change_last_conversation(current_model, *args):
     return current_model.change_last_conversation(*args)
 
+def exchange_roles(current_model, *args):
+    return current_model.exchange_roles(*args)
+
+def set_ex_prompt(current_model, *args):
+    return current_model.set_ex_prompt(*args)
+
 def set_system_prompt(current_model, *args):
     return current_model.set_system_prompt(*args)
 
@@ -118,6 +124,9 @@ def set_user_identifier(current_model, *args):
 
 def set_single_turn(current_model, *args):
     current_model.set_single_turn(*args)
+
+def set_roleplay_mode(current_model, *args):
+    current_model.set_roleplay_mode(*args)
 
 def handle_file_upload(current_model, *args):
     return current_model.handle_file_upload(*args)
@@ -336,7 +345,7 @@ def construct_assistant(text):
     return construct_text("assistant", text)
 
 
-def save_file(filename, system, history, chatbot, user_name):
+def save_file(filename, system, history, chatbot, user_name, roleplay_mode=False, ex_template="None"):
     os.makedirs(os.path.join(HISTORY_DIR, user_name), exist_ok=True)
     if filename is None:
         filename = new_auto_history_filename(user_name)
@@ -346,8 +355,10 @@ def save_file(filename, system, history, chatbot, user_name):
         filename += ".json"
     if filename == ".json":
         raise Exception("文件名不能为空")
-
-    json_s = {"system": system, "history": history, "chatbot": chatbot}
+    if roleplay_mode:
+        json_s = {"roleplay": roleplay_mode, "system": system, "ex":ex_template, "history": history, "chatbot": chatbot}
+    else:
+        json_s = {"roleplay": roleplay_mode, "system": system, "history": history, "chatbot": chatbot}
     repeat_file_index = 2
     if not filename == os.path.basename(filename):
         history_file_path = filename
@@ -360,6 +371,8 @@ def save_file(filename, system, history, chatbot, user_name):
     filename = os.path.basename(filename)
     filename_md = filename[:-5] + ".md"
     md_s = f"system: \n- {system} \n"
+    if roleplay_mode:
+        md_s += f"\nex: \n - {ex_template} \n"
     for data in history:
         md_s += f"\n{data['role']}: \n- {data['content']} \n"
     with open(os.path.join(HISTORY_DIR, user_name, filename_md), "w", encoding="utf8") as f:
@@ -475,8 +488,13 @@ def get_template_content(templates, selection, original_system_prompt):
 def save_template(filename,template_name,prompt):
     logging.debug(f"将模板{template_name}保存到{filename}")
     with open(os.path.join(TEMPLATES_DIR,filename),"r+",encoding="utf-8") as f:
-        data = json.load(f)
-        data.append({"act":template_name,"prompt":prompt})
+        templates = {}
+        data = []
+        for template in json.load(f):
+            templates[template["act"]]=template["prompt"]
+        templates[template_name]=prompt
+        for name in templates.keys():
+            data.append({"act":name,"prompt":templates[name]})
         f.seek(0)
         json.dump(data,f,ensure_ascii=False)
         f.close()
