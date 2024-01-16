@@ -637,7 +637,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     emptyBtn.click(
         reset,
         inputs=[current_model, retain_system_prompt_checkbox],
-        outputs=[chatbot, status_display, historySelectList, systemPromptTxt],
+        outputs=[chatbot, status_display, historySelectList, systemPromptTxt, exPromptTxt],
         show_progress=True,
         _js='(a,b)=>{return clearChatbot(a,b);}',
     )
@@ -740,13 +740,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     templateSelectDropdown.change(
         get_template_content,
         [promptTemplates, templateSelectDropdown, systemPromptTxt],
-        [systemPromptTxt],
+        [systemPromptTxt, exPromptTxt],
         show_progress=True,
     )
     saveTemplateBtn.click(
         save_template,
-        [templateFileSelectDropdown,saveTemplateName,systemPromptTxt],
-        [systemPromptTxt],
+        [templateFileSelectDropdown, saveTemplateName, systemPromptTxt, exPromptTxt],
+        [],
         show_progress=True,
     )
 

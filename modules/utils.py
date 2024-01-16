@@ -480,12 +480,16 @@ def get_template_dropdown():
 def get_template_content(templates, selection, original_system_prompt):
     logging.debug(f"应用模板中，选择为{selection}，原始系统提示为{original_system_prompt}")
     try:
-        return templates[selection]
+        try:
+            ex_template = templates[selection+"_ex"]
+        except:
+            ex_template = ""
+        return templates[selection],ex_template
     except:
-        return original_system_prompt
+        return original_system_prompt,""
 
 
-def save_template(filename,template_name,prompt):
+def save_template(filename,template_name,prompt, ex_prompt):
     logging.debug(f"将模板{template_name}保存到{filename}")
     with open(os.path.join(TEMPLATES_DIR,filename),"r+",encoding="utf-8") as f:
         templates = {}
@@ -495,10 +499,11 @@ def save_template(filename,template_name,prompt):
         templates[template_name]=prompt
         for name in templates.keys():
             data.append({"act":name,"prompt":templates[name]})
+        if len(ex_prompt) > 0:
+            data.append({"act":name+"_ex","prompt":ex_prompt})
         f.seek(0)
         json.dump(data,f,ensure_ascii=False)
         f.close()
-    return prompt
 
 
 def reset_textbox():

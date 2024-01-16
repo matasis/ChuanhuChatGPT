@@ -651,7 +651,8 @@ class BaseLLMModel:
         history_name = self.history_file_path[:-5]
         choices = [history_name] + get_history_names(self.user_identifier)
         system_prompt = self.system_prompt if remain_system_prompt else ""
-        return [], self.token_message([0]), gr.Radio.update(choices=choices, value=history_name), system_prompt
+        ex_prompt = self.user2_prompt if remain_system_prompt else ""
+        return [], self.token_message([0]), gr.Radio.update(choices=choices, value=history_name), system_prompt, ex_prompt
 
     def delete_first_conversation(self):
         if self.history:
