@@ -403,7 +403,7 @@ def save_file(filename, model, chatbot):
     json_s = {
         "roleplay_mode": roleplay_mode,
         "system": system,
-        "ex_system":ex_system,
+        "ex":ex_system,
         "history": history,
         "chatbot": chatbot,
         "model_name": model.model_name,

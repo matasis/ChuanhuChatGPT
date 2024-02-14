@@ -1051,7 +1051,7 @@ class BaseLLMModel:
             self.metadata = saved_json.get("metadata", self.metadata)
             self.chatbot = saved_json["chatbot"]
             self.roleplay_mode = saved_json.get("roleplay_mode", self.roleplay_mode)
-            self.ex_prompt = saved_json.get("ex_system",self.ex_prompt)
+            self.ex_prompt = saved_json.get("ex",self.ex_prompt)
             return (
                 os.path.basename(self.history_file_path)[:-5],
                 saved_json["system"],
@@ -1088,6 +1088,7 @@ class BaseLLMModel:
                 self.frequency_penalty,
                 self.logit_bias,
                 self.user_identifier,
+                self.ex_prompt
             )
 
     def delete_chat_history(self, filename):
