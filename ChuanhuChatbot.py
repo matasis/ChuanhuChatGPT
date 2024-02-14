@@ -44,7 +44,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     with gr.Row(elem_id="chuanhu-header"):
         gr.HTML(get_html("header_title.html").format(
             app_title=CHUANHU_TITLE), elem_id="app-title")
-        status_display = gr.Markdown(get_geoip(), elem_id="status-display")
+        status_display = gr.Markdown(get_geoip, elem_id="status-display")
     with gr.Row(elem_id="float-display"):
         user_info = gr.Markdown(
             value="getting user info...", elem_id="user-info")
@@ -55,6 +55,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
             update_btn=i18n("更新"),
             seenew_btn=i18n("详情"),
             ok_btn=i18n("好"),
+            close_btn=i18n("关闭"),
+            reboot_btn=i18n("立即重启"),
         ), visible=check_update)
 
     with gr.Row(equal_height=True, elem_id="chuanhu-body"):
@@ -135,6 +137,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         label="Chuanhu Chat",
                         elem_id="chuanhu-chatbot",
                         latex_delimiters=latex_delimiters_set,
+                        sanitize_html=False,
                         # height=700,
                         show_label=False,
                         avatar_images=[config.user_avatar, config.bot_avatar],
@@ -204,6 +207,23 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         obj="toolbox"), elem_classes="close-btn")
                 with gr.Tabs(elem_id="chuanhu-toolbox-tabs"):
                     with gr.Tab(label=i18n("对话")):
+                        with gr.Accordion(label=i18n("模型"), open=not HIDE_MY_KEY, visible=not HIDE_MY_KEY):
+                            keyTxt = gr.Textbox(
+                                show_label=True,
+                                placeholder=f"Your API-key...",
+                                value=hide_middle_chars(user_api_key.value),
+                                type="password",
+                                visible=not HIDE_MY_KEY,
+                                label="API-Key",
+                                elem_id="api-key"
+                            )
+                            if multi_api_key:
+                                usageTxt = gr.Markdown(i18n(
+                                    "多账号模式已开启，无需输入key，可直接开始对话"), elem_id="usage-display", elem_classes="insert-block", visible=show_api_billing)
+                            else:
+                                usageTxt = gr.Markdown(i18n(
+                                    "**发送消息** 或 **提交key** 以显示额度"), elem_id="usage-display", elem_classes="insert-block", visible=show_api_billing)
+                        gr.Markdown("---", elem_classes="hr-line", visible=not HIDE_MY_KEY)
                         with gr.Accordion(label="Prompt", open=True):
                             systemPromptTxt = gr.Textbox(
                                 show_label=True,
@@ -262,7 +282,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             use_websearch_checkbox = gr.Checkbox(label=i18n(
                                 "使用在线搜索"), value=False, elem_classes="switch-checkbox", elem_id="gr-websearch-cb", visible=False)
                             index_files = gr.Files(label=i18n(
-                                "上传"), type="file", elem_id="upload-index-file")
+                                "上传"), type="file", file_types=[".pdf", ".docx", ".pptx", ".epub", ".xlsx", ".txt", "text", "image"], elem_id="upload-index-file")
                             two_column = gr.Checkbox(label=i18n(
                                 "双栏pdf"), value=advance_docs["pdf"].get("two_column", False))
                             summarize_btn = gr.Button(i18n("总结"))
@@ -346,7 +366,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             user_identifier_txt = gr.Textbox(
                                 show_label=True,
                                 placeholder=i18n("用于定位滥用行为"),
-                                label=i18n("用户名"),
+                                label=i18n("用户标识符"),
                                 value=user_name.value,
                                 lines=1,
                             )
@@ -364,21 +384,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     gr.HTML(get_html("close_btn.html").format(
                         obj="box"), elem_classes="close-btn")
                 with gr.Tabs(elem_id="chuanhu-setting-tabs"):
-                    with gr.Tab(label=i18n("模型")):
-                        keyTxt = gr.Textbox(
-                            show_label=True,
-                            placeholder=f"Your API-key...",
-                            value=hide_middle_chars(user_api_key.value),
-                            type="password",
-                            visible=not HIDE_MY_KEY,
-                            label="API-Key",
-                        )
-                        if multi_api_key:
-                            usageTxt = gr.Markdown(i18n(
-                                "多账号模式已开启，无需输入key，可直接开始对话"), elem_id="usage-display", elem_classes="insert-block", visible=show_api_billing)
-                        else:
-                            usageTxt = gr.Markdown(i18n(
-                                "**发送消息** 或 **提交key** 以显示额度"), elem_id="usage-display", elem_classes="insert-block", visible=show_api_billing)
+                    # with gr.Tab(label=i18n("模型")):
+
                         # model_select_dropdown = gr.Dropdown(
                         #     label=i18n("选择模型"), choices=MODELS, multiselect=False, value=MODELS[DEFAULT_MODEL], interactive=True
                         # )
@@ -387,18 +394,18 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         # )
                         # with gr.Row():
 
-                        language_select_dropdown = gr.Dropdown(
-                            label=i18n("选择回复语言（针对搜索&索引功能）"),
-                            choices=REPLY_LANGUAGES,
-                            multiselect=False,
-                            value=REPLY_LANGUAGES[0],
-                        )
 
                     with gr.Tab(label=i18n("高级")):
                         gr.HTML(get_html("appearance_switcher.html").format(
                             label=i18n("切换亮暗色主题")), elem_classes="insert-block", visible=False)
                         use_streaming_checkbox = gr.Checkbox(
                             label=i18n("实时传输回答"), value=True, visible=ENABLE_STREAMING_OPTION, elem_classes="switch-checkbox"
+                        )
+                        language_select_dropdown = gr.Dropdown(
+                            label=i18n("选择回复语言（针对搜索&索引功能）"),
+                            choices=REPLY_LANGUAGES,
+                            multiselect=False,
+                            value=REPLY_LANGUAGES[0],
                         )
                         name_chat_method = gr.Dropdown(
                             label=i18n("对话命名方式"),
@@ -522,10 +529,14 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     editRound_i18n=i18n("编辑这组对话"),
                     renameChat_i18n=i18n("重命名该对话"),
                     validFileName_i18n=i18n("请输入有效的文件名，不要包含以下特殊字符："),
+                    clearFileHistoryMsg_i18n=i18n("⚠️请先删除知识库中的历史文件，再尝试上传！"),
+                    dropUploadMsg_i18n=i18n("释放文件以上传"),
                 ))
             with gr.Box(elem_id="fake-gradio-components", visible=False):
                 updateChuanhuBtn = gr.Button(
                     visible=False, elem_classes="invisible-btn", elem_id="update-chuanhu-btn")
+                rebootChuanhuBtn = gr.Button(
+                    visible=False, elem_classes="invisible-btn", elem_id="reboot-chuanhu-btn")
                 changeSingleSessionBtn = gr.Button(
                     visible=False, elem_classes="invisible-btn", elem_id="change-single-session-btn")
                 changeOnlineSearchBtn = gr.Button(
@@ -546,17 +557,14 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
             user_info, user_name = gr.Markdown.update(
                 value=f"", visible=False), ""
         current_model = get_model(
-            model_name=MODELS[DEFAULT_MODEL], access_key=my_api_key)[0]
-        current_model.set_user_identifier(user_name)
+            model_name=MODELS[DEFAULT_MODEL], access_key=my_api_key, user_name=user_name)[0]
         if not hide_history_when_not_logged_in or user_name:
-            filename, system_prompt, chatbot, ex_ptompt = current_model.auto_load()
+            loaded_stuff = current_model.auto_load()
         else:
-            system_prompt = gr.update()
-            filename = gr.update()
-            chatbot = gr.Chatbot.update(label=MODELS[DEFAULT_MODEL])
-        return user_info, user_name, current_model, toggle_like_btn_visibility(DEFAULT_MODEL), filename, system_prompt, chatbot, init_history_list(user_name), ex_ptompt
+            loaded_stuff = [gr.update(), gr.update(), gr.Chatbot.update(label=MODELS[DEFAULT_MODEL]), current_model.single_turn, current_model.temperature, current_model.top_p, current_model.n_choices, current_model.stop_sequence, current_model.token_upper_limit, current_model.max_generation_token, current_model.presence_penalty, current_model.frequency_penalty, current_model.logit_bias, current_model.user_identifier, current_model.ex_prompt]
+        return user_info, user_name, current_model, toggle_like_btn_visibility(DEFAULT_MODEL), *loaded_stuff, init_history_list(user_name)
     demo.load(create_greeting, inputs=None, outputs=[
-              user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, chatbot, historySelectList, exPromptTxt], api_name="load")
+              user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, historySelectList, exPromptTxt], api_name="load")
     chatgpt_predict_args = dict(
         fn=predict,
         inputs=[
@@ -599,8 +607,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
     load_history_from_file_args = dict(
         fn=load_chat_history,
-        inputs=[current_model, historySelectList, user_name],
-        outputs=[saveFileName, systemPromptTxt, chatbot, exPromptTxt]
+        inputs=[current_model, historySelectList],
+        outputs=[saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, exPromptTxt],
     )
 
     refresh_history_args = dict(
@@ -609,7 +617,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
     auto_name_chat_history_args = dict(
         fn=auto_name_chat_history,
-        inputs=[current_model, name_chat_method, user_question, chatbot, user_name, single_turn_checkbox],
+        inputs=[current_model, name_chat_method, user_question, chatbot, single_turn_checkbox],
         outputs=[historySelectList],
         show_progress=False,
     )
@@ -629,7 +637,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
 
     # submitBtn.click(auto_name_chat_history, [current_model, user_question, chatbot, user_name], [historySelectList], show_progress=False)
 
-    index_files.change(handle_file_upload, [current_model, index_files, chatbot, language_select_dropdown], [
+    index_files.upload(handle_file_upload, [current_model, index_files, chatbot, language_select_dropdown], [
                        index_files, chatbot, status_display])
     summarize_btn.click(handle_summarize_index, [
                         current_model, index_files, chatbot, language_select_dropdown], [chatbot, status_display])
@@ -637,7 +645,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     emptyBtn.click(
         reset,
         inputs=[current_model, retain_system_prompt_checkbox],
-        outputs=[chatbot, status_display, historySelectList, systemPromptTxt, exPromptTxt],
+        outputs=[chatbot, status_display, historySelectList, systemPromptTxt, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, exPromptTxt],
         show_progress=True,
         _js='(a,b)=>{return clearChatbot(a,b);}',
     )
@@ -715,11 +723,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                   user_api_key, status_display], api_name="set_key").then(**get_usage_args)
     keyTxt.submit(**get_usage_args)
     single_turn_checkbox.change(
-        set_single_turn, [current_model, single_turn_checkbox], None)
+        set_single_turn, [current_model, single_turn_checkbox], None, show_progress=False)
     model_select_dropdown.change(get_model, [model_select_dropdown, lora_select_dropdown, user_api_key, temperature_slider, top_p_slider, systemPromptTxt, user_name, current_model], [
                                  current_model, status_display, chatbot, lora_select_dropdown, user_api_key, keyTxt], show_progress=True, api_name="get_model")
     model_select_dropdown.change(toggle_like_btn_visibility, [model_select_dropdown], [
                                  like_dislike_area], show_progress=False)
+    # model_select_dropdown.change(
+    #     toggle_file_type, [model_select_dropdown], [index_files], show_progress=False)
     lora_select_dropdown.change(get_model, [model_select_dropdown, lora_select_dropdown, user_api_key, temperature_slider,
                                 top_p_slider, systemPromptTxt, user_name, current_model], [current_model, status_display, chatbot], show_progress=True)
     roleplay_mode_checkbox.change(
@@ -753,19 +763,19 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     # S&L
     renameHistoryBtn.click(
         rename_chat_history,
-        [current_model, saveFileName, chatbot, user_name],
+        [current_model, saveFileName, chatbot],
         [historySelectList],
         show_progress=True,
         _js='(a,b,c,d)=>{return saveChatHistory(a,b,c,d);}'
     )
     exportMarkdownBtn.click(
         export_markdown,
-        [current_model, saveFileName, chatbot, user_name],
+        [current_model, saveFileName, chatbot],
         [],
         show_progress=True,
     )
     historyRefreshBtn.click(**refresh_history_args)
-    historyDeleteBtn.click(delete_chat_history, [current_model, historySelectList, user_name], [status_display, historySelectList, chatbot], _js='(a,b,c)=>{return showConfirmationDialog(a, b, c);}').then(
+    historyDeleteBtn.click(delete_chat_history, [current_model, historySelectList], [status_display, historySelectList, chatbot], _js='(a,b,c)=>{return showConfirmationDialog(a, b, c);}').then(
         reset,
         inputs=[current_model, retain_system_prompt_checkbox],
         outputs=[chatbot, status_display, historySelectList, systemPromptTxt],
@@ -773,8 +783,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         _js='(a,b)=>{return clearChatbot(a,b);}',
     )
     historySelectList.input(**load_history_from_file_args)
-    uploadFileBtn.upload(upload_chat_history, [current_model, uploadFileBtn, user_name], [
-                        saveFileName, systemPromptTxt, chatbot]).then(**refresh_history_args)
+    uploadFileBtn.upload(upload_chat_history, [current_model, uploadFileBtn], [
+                        saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt]).then(**refresh_history_args)
     historyDownloadBtn.click(None, [
                              user_name, historySelectList], None, _js='(a,b)=>{return downloadHistory(a,b,".json");}')
     historyMarkdownDownloadBtn.click(None, [
@@ -806,25 +816,25 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         cancel_all_jobs, [], [openai_train_status], show_progress=True)
 
     # Advanced
-    max_context_length_slider.change(
-        set_token_upper_limit, [current_model, max_context_length_slider], None)
-    temperature_slider.change(
-        set_temperature, [current_model, temperature_slider], None)
-    top_p_slider.change(set_top_p, [current_model, top_p_slider], None)
-    n_choices_slider.change(
-        set_n_choices, [current_model, n_choices_slider], None)
-    stop_sequence_txt.change(
-        set_stop_sequence, [current_model, stop_sequence_txt], None)
-    max_generation_slider.change(
-        set_max_tokens, [current_model, max_generation_slider], None)
-    presence_penalty_slider.change(
-        set_presence_penalty, [current_model, presence_penalty_slider], None)
-    frequency_penalty_slider.change(
-        set_frequency_penalty, [current_model, frequency_penalty_slider], None)
-    logit_bias_txt.change(
-        set_logit_bias, [current_model, logit_bias_txt], None)
-    user_identifier_txt.change(set_user_identifier, [
-                               current_model, user_identifier_txt], None)
+    temperature_slider.input(
+        set_temperature, [current_model, temperature_slider], None, show_progress=False)
+    top_p_slider.input(set_top_p, [current_model, top_p_slider], None, show_progress=False)
+    n_choices_slider.input(
+        set_n_choices, [current_model, n_choices_slider], None, show_progress=False)
+    stop_sequence_txt.input(
+        set_stop_sequence, [current_model, stop_sequence_txt], None, show_progress=False)
+    max_context_length_slider.input(
+        set_token_upper_limit, [current_model, max_context_length_slider], None, show_progress=False)
+    max_generation_slider.input(
+        set_max_tokens, [current_model, max_generation_slider], None, show_progress=False)
+    presence_penalty_slider.input(
+        set_presence_penalty, [current_model, presence_penalty_slider], None, show_progress=False)
+    frequency_penalty_slider.input(
+        set_frequency_penalty, [current_model, frequency_penalty_slider], None, show_progress=False)
+    logit_bias_txt.input(
+        set_logit_bias, [current_model, logit_bias_txt], None, show_progress=False)
+    user_identifier_txt.input(set_user_identifier, [
+                               current_model, user_identifier_txt], None, show_progress=False)
 
     default_btn.click(
         reset_default, [], [apihostTxt, proxyTxt, status_display], show_progress=True
@@ -850,6 +860,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         [status_display],
         show_progress=True,
     )
+    rebootChuanhuBtn.click(
+        reboot_chuanhu,
+        [],
+        [],
+        show_progress=True,
+        _js='rebootingChuanhu'
+    )
     changeSingleSessionBtn.click(
         fn=lambda value: gr.Checkbox.update(value=value),
         inputs=[single_turn_checkbox],
@@ -871,27 +888,22 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     historySelectBtn.click(  # This is an experimental feature... Not actually used.
         fn=load_chat_history,
         inputs=[current_model, historySelectList],
-        outputs=[saveFileName, systemPromptTxt, chatbot, exPromptTxt],
+        outputs=[saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt,exPromptTxt],
         _js='(a,b)=>{return bgSelectHistory(a,b);}'
     )
 
-
-logging.info(
-    colorama.Back.GREEN
-    + "\n川虎的温馨提示：访问 http://localhost:7860 查看界面"
-    + colorama.Style.RESET_ALL
-)
 # 默认开启本地服务器，默认可以直接从IP访问，默认不创建公开分享链接
 demo.title = i18n("川虎Chat 🚀")
 
 if __name__ == "__main__":
     reload_javascript()
+    setup_wizard()
     demo.queue(concurrency_count=CONCURRENT_COUNT).launch(
-        blocked_paths=["config.json"],
+        allowed_paths=["history", "web_assets"],
         server_name=server_name,
         server_port=server_port,
         share=share,
         auth=auth_from_conf if authflag else None,
         favicon_path="./web_assets/favicon.ico",
-        inbrowser=not dockerflag,  # 禁止在docker下开启inbrowser
+        inbrowser=autobrowser and not dockerflag,  # 禁止在docker下开启inbrowser
     )

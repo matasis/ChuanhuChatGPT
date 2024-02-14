@@ -29,6 +29,7 @@ function setUploader() {
             fileCountSpan.innerText = fileCount;
         } else {
             chatbotArea.classList.remove('with-file');
+            statusDisplayMessage("");
             fileCount = 0;
             transUpload();
         }
@@ -105,6 +106,11 @@ function bgChangeRoleplayMode() {
     return [a];
 }
 
+function updateCheckboxes() {
+    chatbotSingleSessionCB.checked = grSingleSessionCB.checked;
+    chatbotOnlineSearchCB.checked = grOnlineSearchCB.checked;
+}
+
 // UTILS
 function transEventListeners(target, source, events) {
     events.forEach((sourceEvent) => {
@@ -123,4 +129,8 @@ function bgSelectHistory(a,b){
     const historySelectorInput = gradioApp().querySelector('#history-select-dropdown input');
     let file = historySelectorInput.value;
     return [a,file]
+}
+
+function bgRebootChuanhu() {
+    rebootChuanhuBtn.click()
 }

@@ -16,6 +16,7 @@ INITIAL_SYSTEM_PROMPT = "You are a helpful assistant."
 API_HOST = "api.openai.com"
 OPENAI_API_BASE = "https://api.openai.com/v1"
 CHAT_COMPLETION_URL = "https://api.openai.com/v1/chat/completions"
+IMAGES_COMPLETION_URL = "https://api.openai.com/v1/images/generations"
 COMPLETION_URL = "https://api.openai.com/v1/completions"
 BALANCE_API_URL="https://api.openai.com/dashboard/billing/credit_grants"
 USAGE_API_URL="https://api.openai.com/dashboard/billing/usage"
@@ -39,7 +40,6 @@ TIMEOUT_STREAMING = 60  # 流式对话时的超时时间
 TIMEOUT_ALL = 200  # 非流式对话时的超时时间
 ENABLE_STREAMING_OPTION = True  # 是否启用选择选择是否实时显示回答的勾选框
 ENABLE_LLM_NAME_CHAT_OPTION = True  # 是否启用选择是否使用LLM模型的勾选框
-HIDE_MY_KEY = False  # 如果你想在UI中隐藏你的 API 密钥，将此值设置为 True
 CONCURRENT_COUNT = 100 # 允许同时使用的用户数量
 
 SIM_K = 5
@@ -51,19 +51,19 @@ CHUANHU_DESCRIPTION = i18n("由Bilibili [土川虎虎虎](https://space.bilibili
 
 
 ONLINE_MODELS = [
-    "gpt-3.5-turbo",
-    "gpt-3.5-turbo-instruct",
-    "gpt-3.5-turbo-16k",
-    "gpt-4",
-    "gpt-3.5-turbo-0301",
-    "gpt-3.5-turbo-0613",
-    "gpt-4-0314",
-    "gpt-4-0613",
-    "gpt-4-32k",
-    "gpt-4-32k-0314",
-    "gpt-4-32k-0613",
+    "GPT3.5 Turbo",
+    "GPT3.5 Turbo Instruct",
+    "GPT3.5 Turbo 16K",
+    "GPT3.5 Turbo 0301",
+    "GPT3.5 Turbo 0613",
+    "GPT3.5 Turbo 1106",
+    "GPT4",
+    "GPT4 32K",
+    "GPT4 Turbo",
+    "GPT4 Vision",
     "川虎助理",
     "川虎助理 Pro",
+    "DALL-E 3",
     "GooglePaLM",
     "xmchat",
     "Azure OpenAI",
@@ -76,7 +76,10 @@ ONLINE_MODELS = [
     "讯飞星火大模型V3.0",
     "讯飞星火大模型V2.0",
     "讯飞星火大模型V1.5",
-    "Claude"
+    "Claude",
+    "ERNIE-Bot-turbo",
+    "ERNIE-Bot",
+    "ERNIE-Bot-4",
 ]
 
 LOCAL_MODELS = [
@@ -85,6 +88,8 @@ LOCAL_MODELS = [
     "chatglm-6b-int4-ge",
     "chatglm2-6b",
     "chatglm2-6b-int4",
+    "chatglm3-6b",
+    "chatglm3-6b-32k",
     "StableLM",
     "MOSS",
     "Llama-2-7B-Chat",
@@ -92,7 +97,7 @@ LOCAL_MODELS = [
     "Qwen 14B"
 ]
 
-# Additional metadate for local models
+# Additional metadata for online and local models
 MODEL_METADATA = {
     "Llama-2-7B":{
         "repo_id": "TheBloke/Llama-2-7B-GGUF",
@@ -107,7 +112,63 @@ MODEL_METADATA = {
     },
     "Qwen 14B": {
         "repo_id": "Qwen/Qwen-14B-Chat-Int4",
-    }
+    },
+    "GPT3.5 Turbo": {
+        "model_name": "gpt-3.5-turbo",
+        "token_limit": 4096,
+    },
+    "GPT3.5 Turbo Instruct": {
+        "model_name": "gpt-3.5-turbo-instruct",
+        "token_limit": 4096,
+    },
+    "GPT3.5 Turbo 16K": {
+        "model_name": "gpt-3.5-turbo-16k",
+        "token_limit": 16384,
+    },
+    "GPT3.5 Turbo 0301": {
+        "model_name": "gpt-3.5-turbo-0301",
+        "token_limit": 4096,
+    },
+    "GPT3.5 Turbo 0613": {
+        "model_name": "gpt-3.5-turbo-0613",
+        "token_limit": 4096,
+    },
+    "GPT3.5 Turbo 1106": {
+    "model_name": "gpt-3.5-turbo-1106",
+    "token_limit": 16384,
+    },
+    "GPT4": {
+        "model_name": "gpt-4",
+        "token_limit": 8192,
+    },
+    "GPT4 32K": {
+        "model_name": "gpt-4-32k",
+        "token_limit": 32768,
+    },
+    "GPT4 Turbo": {
+        "model_name": "gpt-4-1106-preview",
+        "token_limit": 128000,
+    },
+    "GPT4 Vision": {
+        "model_name": "gpt-4-vision-preview",
+        "token_limit": 128000,
+    },
+    "Claude": {
+        "model_name": "Claude",
+        "token_limit": 4096,
+    },
+    "ERNIE-Bot-turbo": {
+        "model_name": "ERNIE-Bot-turbo",
+        "token_limit": 1024,
+    },
+    "ERNIE-Bot": {
+        "model_name": "ERNIE-Bot",
+        "token_limit": 1024,
+    },
+    "ERNIE-Bot-4": {
+        "model_name": "ERNIE-Bot-4",
+        "token_limit": 1024,
+    },
 }
 
 if os.environ.get('HIDE_LOCAL_MODELS', 'false') == 'true':
@@ -124,20 +185,6 @@ for dir_name in os.listdir("models"):
     if os.path.isdir(os.path.join("models", dir_name)):
         if dir_name not in MODELS:
             MODELS.append(dir_name)
-
-MODEL_TOKEN_LIMIT = {
-    "gpt-3.5-turbo": 4096,
-    "gpt-3.5-turbo-16k": 16384,
-    "gpt-3.5-turbo-0301": 4096,
-    "gpt-3.5-turbo-0613": 4096,
-    "gpt-4": 8192,
-    "gpt-4-0314": 8192,
-    "gpt-4-0613": 8192,
-    "gpt-4-32k": 32768,
-    "gpt-4-32k-0314": 32768,
-    "gpt-4-32k-0613": 32768,
-    "Claude": 4096
-}
 
 TOKEN_OFFSET = 1000 # 模型的token上限减去这个值，得到软上限。到达软上限之后，自动尝试减少token占用。
 DEFAULT_TOKEN_LIMIT = 3000 # 默认的token上限

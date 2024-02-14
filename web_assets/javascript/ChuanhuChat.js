@@ -26,6 +26,7 @@ var sendBtn = null;
 var cancelBtn = null;
 var sliders = null;
 var updateChuanhuBtn = null;
+var rebootChuanhuBtn = null;
 var statusDisplay = null;
 
 var historySelector = null;
@@ -46,9 +47,9 @@ let windowWidth = window.innerWidth; // 初始窗口宽度
 
 function addInit() {
     var needInit = {chatbotIndicator, uploaderIndicator};
-    
+
     chatbotIndicator = gradioApp().querySelector('#chuanhu-chatbot > div.wrap');
-    uploaderIndicator = gradioApp().querySelector('#upload-index-file > div.wrap');
+    uploaderIndicator = gradioApp().querySelector('#upload-index-file > div[data-testid="block-label"]');
     chatListIndicator = gradioApp().querySelector('#history-select-dropdown > div.wrap');
 
     for (let elem in needInit) {
@@ -61,7 +62,8 @@ function addInit() {
     chatbotObserver.observe(chatbotIndicator, { attributes: true, childList: true, subtree: true });
     chatListObserver.observe(chatListIndicator, { attributes: true });
     setUploader();
-    
+    setPasteUploader();
+    setDragUploader();
     return true;
 }
 
@@ -82,6 +84,7 @@ function initialize() {
     cancelBtn = gradioApp().getElementById("cancel-btn");
     sliders = gradioApp().querySelectorAll('input[type="range"]');
     updateChuanhuBtn = gradioApp().getElementById("update-chuanhu-btn");
+    rebootChuanhuBtn = gradioApp().getElementById("reboot-chuanhu-btn");
     statusDisplay = gradioApp().querySelector('#status-display');
 
     historySelector = gradioApp().querySelector('#history-select-dropdown');
@@ -110,6 +113,7 @@ function initialize() {
     setPopupBoxPosition();
     setSlider();
     setCheckboxes();
+    setAutocomplete();
     checkModel();
 
     settingBox.classList.add('hideBox');
@@ -127,7 +131,7 @@ function initialize() {
     // setHistroyPanel();
     // trainBody.classList.add('hide-body');
 
-    
+
 
     return true;
 }
@@ -216,7 +220,7 @@ function checkModel() {
     checkXMChat();
     function checkGPT() {
         modelValue = model.value;
-        if (modelValue.includes('gpt')) {
+        if (modelValue.toLowerCase().includes('gpt')) {
             gradioApp().querySelector('#header-btn-groups').classList.add('is-gpt');
         } else {
             gradioApp().querySelector('#header-btn-groups').classList.remove('is-gpt');
@@ -338,6 +342,12 @@ function setChatbotScroll() {
     chatbotWrap.scrollTo(0,scrollHeight)
 }
 
+function setAutocomplete() {
+    // 避免API Key被当成密码导致的模型下拉框被当成用户名而引发的浏览器自动填充行为
+    const apiKeyInput = gradioApp().querySelector("#api-key input");
+    apiKeyInput.setAttribute("autocomplete", "new-password");
+}
+
 function clearChatbot(a, b) {
     clearHistoryHtml();
     // clearMessageRows();
@@ -350,6 +360,9 @@ function chatbotContentChanged(attempt = 1, force = false) {
             // clearMessageRows();
             saveHistoryHtml();
             disableSendBtn();
+            updateSlider();
+            updateCheckboxes();
+            bindFancyBox();
 
             gradioApp().querySelectorAll('#chuanhu-chatbot .message-wrap .message.bot').forEach(addChuanhuButton);
 
@@ -368,8 +381,8 @@ function chatbotContentChanged(attempt = 1, force = false) {
                     }
                 }, 200);
             }
-        
-            
+
+
         }, i === 0 ? 0 : 200);
     }
     // 理论上是不需要多次尝试执行的，可惜gradio的bug导致message可能没有渲染完毕，所以尝试500ms后再次执行
@@ -417,7 +430,7 @@ window.addEventListener('resize', ()=>{
     updateVH();
     windowWidth = window.innerWidth;
     setPopupBoxPosition();
-    adjustSide(); 
+    adjustSide();
 });
 window.addEventListener('orientationchange', (event) => {
     updateVH();
@@ -444,13 +457,13 @@ function makeML(str) {
     return l
 }
 let ChuanhuInfo = function () {
-    /* 
-   ________                      __             ________          __ 
+    /*
+   ________                      __             ________          __
   / ____/ /_  __  ______ _____  / /_  __  __   / ____/ /_  ____ _/ /_
  / /   / __ \/ / / / __ `/ __ \/ __ \/ / / /  / /   / __ \/ __ `/ __/
-/ /___/ / / / /_/ / /_/ / / / / / / / /_/ /  / /___/ / / / /_/ / /_  
-\____/_/ /_/\__,_/\__,_/_/ /_/_/ /_/\__,_/   \____/_/ /_/\__,_/\__/  
-                                                                     
+/ /___/ / / / /_/ / /_/ / / / / / / / /_/ /  / /___/ / / / /_/ / /_
+\____/_/ /_/\__,_/\__,_/_/ /_/_/ /_/\__,_/   \____/_/ /_/\__,_/\__/
+
    川虎Chat (Chuanhu Chat) - GUI for ChatGPT API and many LLMs
  */
 }

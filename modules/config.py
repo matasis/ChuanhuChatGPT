@@ -4,6 +4,7 @@ import os
 import logging
 import sys
 import commentjson as json
+import colorama
 
 from . import shared
 from . import presets
@@ -23,12 +24,14 @@ __all__ = [
     "server_name",
     "server_port",
     "share",
+    "autobrowser",
     "check_update",
     "latex_delimiters_set",
     "hide_history_when_not_logged_in",
     "default_chuanhu_assistant_model",
     "show_api_billing",
     "chat_name_method_index",
+    "HIDE_MY_KEY",
 ]
 
 # 添加一个统一的config文件，避免文件过多造成的疑惑（优先级最低）
@@ -94,10 +97,16 @@ else:
     sensitive_id = config.get("sensitive_id", "")
     sensitive_id = os.environ.get("SENSITIVE_ID", sensitive_id)
 
+if "available_models" in config:
+    presets.MODELS = config["available_models"]
+    logging.info(f"已设置可用模型：{config['available_models']}")
+
 # 模型配置
 if "extra_models" in  config:
     presets.MODELS.extend(config["extra_models"])
     logging.info(f"已添加额外的模型：{config['extra_models']}")
+
+HIDE_MY_KEY = config.get("hide_my_key", False)
 
 google_palm_api_key = config.get("google_palm_api_key", "")
 google_palm_api_key = os.environ.get(
@@ -131,6 +140,11 @@ os.environ["SPARK_API_SECRET"] = spark_api_secret
 claude_api_secret = config.get("claude_api_secret", "")
 os.environ["CLAUDE_API_SECRET"] = claude_api_secret
 
+ernie_api_key = config.get("ernie_api_key", "")
+os.environ["ERNIE_APIKEY"] = ernie_api_key
+ernie_secret_key = config.get("ernie_secret_key", "")
+os.environ["ERNIE_SECRETKEY"] = ernie_secret_key
+
 load_config_to_environ(["openai_api_type", "azure_openai_api_key", "azure_openai_api_base_url",
                        "azure_openai_api_version", "azure_deployment_name", "azure_embedding_deployment_name", "azure_embedding_model_name"])
 
@@ -154,7 +168,7 @@ api_host = os.environ.get(
     "OPENAI_API_BASE", config.get("openai_api_base", None))
 if api_host is not None:
     shared.state.set_api_host(api_host)
-    os.environ["OPENAI_API_BASE"] = f"{api_host}/v1"
+    # os.environ["OPENAI_API_BASE"] = f"{api_host}/v1"
     logging.info(f"OpenAI API Base set to: {os.environ['OPENAI_API_BASE']}")
 
 default_chuanhu_assistant_model = config.get(
@@ -275,13 +289,18 @@ if server_port is None:
 assert server_port is None or type(server_port) == int, "要求port设置为int类型"
 
 # 设置默认model
-default_model = config.get("default_model", "")
+default_model = config.get("default_model", "GPT3.5 Turbo")
 try:
-    presets.DEFAULT_MODEL = presets.MODELS.index(default_model)
+    if default_model in presets.MODELS:
+        presets.DEFAULT_MODEL = presets.MODELS.index(default_model)
+    else:
+        presets.DEFAULT_MODEL = presets.MODELS.index(next((k for k, v in presets.MODEL_METADATA.items() if v.get("model_name") == default_model), None))
+    logging.info("默认模型设置为了：" + str(presets.MODELS[presets.DEFAULT_MODEL]))
 except ValueError:
-    pass
+    logging.error("你填写的默认模型" + default_model + "不存在！请从下面的列表中挑一个填写：" + str(presets.MODELS))
 
 share = config.get("share", False)
+autobrowser = config.get("autobrowser", True)
 
 # avatar
 bot_avatar = config.get("bot_avatar", "default")

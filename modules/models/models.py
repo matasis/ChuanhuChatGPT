@@ -43,8 +43,6 @@ def get_model(
                 model_name=model_name,
                 api_key=access_key,
                 system_prompt=system_prompt,
-                temperature=temperature,
-                top_p=top_p,
                 user_name=user_name,
             )
         elif model_type == ModelType.OpenAIInstruct:
@@ -52,6 +50,12 @@ def get_model(
             from .OpenAIInstruct import OpenAI_Instruct_Client
             access_key = os.environ.get("OPENAI_API_KEY", access_key)
             model = OpenAI_Instruct_Client(
+                model_name, api_key=access_key, user_name=user_name)
+        elif model_type == ModelType.OpenAIVision:
+            logging.info(f"正在加载OpenAI Vision模型: {model_name}")
+            from .OpenAIVision import OpenAIVisionClient
+            access_key = os.environ.get("OPENAI_API_KEY", access_key)
+            model = OpenAIVisionClient(
                 model_name, api_key=access_key, user_name=user_name)
         elif model_type == ModelType.ChatGLM:
             logging.info(f"正在加载ChatGLM模型: {model_name}")
@@ -122,6 +126,13 @@ def get_model(
         elif model_type == ModelType.Qwen:
             from .Qwen import Qwen_Client
             model = Qwen_Client(model_name, user_name=user_name)
+        elif model_type == ModelType.ERNIE:
+            from .ERNIE import ERNIE_Client
+            model = ERNIE_Client(model_name, api_key=os.getenv("ERNIE_APIKEY"),secret_key=os.getenv("ERNIE_SECRETKEY"))
+        elif model_type == ModelType.DALLE3:
+            from .DALLE3 import OpenAI_DALLE3_Client
+            access_key = os.environ.get("OPENAI_API_KEY", access_key)
+            model = OpenAI_DALLE3_Client(model_name, api_key=access_key, user_name=user_name)
         elif model_type == ModelType.Unknown:
             raise ValueError(f"未知模型: {model_name}")
         logging.info(msg)
