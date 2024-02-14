@@ -877,8 +877,8 @@ class BaseLLMModel:
         return chatbot, msg
 
     def set_ex_prompt(self, system_prompt, ex_prompt):
-        self.user1_prompt = system_prompt
-        self.user2_prompt = ex_prompt
+        self.temp_prompt = system_prompt
+        self.ex_prompt = ex_prompt
 
     def set_roleplay_mode(self, roleplay_mode):
         self.roleplay_mode = roleplay_mode
@@ -886,7 +886,7 @@ class BaseLLMModel:
     def exchange_roles(self, chatbot, user_input):
         if len(chatbot) > 0 and STANDARD_ERROR_MSG in chatbot[-1][1]:
             msg = "由于包含报错信息，无法获得记录。"
-            return chatbot, "", self.system_prompt, self.user2_prompt, msg
+            return chatbot, "", self.system_prompt, self.ex_prompt, msg
         msg = "交换角色"
         history_len = len(self.history)
         history = []
@@ -917,11 +917,11 @@ class BaseLLMModel:
                 index += 2
         msg = "转换了{}条对话".format(str(index-1))
         if self.roleplay_mode:
-            self.system_prompt = self.user2_prompt
-            self.user2_prompt = self.user1_prompt
-            self.user1_prompt = self.system_prompt
+            self.system_prompt = self.ex_prompt
+            self.ex_prompt = self.temp_prompt
+            self.temp_prompt = self.system_prompt
 
-        return newbot, user_input, self.system_prompt, self.user2_prompt, msg
+        return newbot, user_input, self.system_prompt, self.ex_prompt, msg
 
     def token_message(self, token_lst=None):
         if token_lst is None:
@@ -1050,6 +1050,8 @@ class BaseLLMModel:
             self.user_identifier = saved_json.get("user_identifier", self.user_name)
             self.metadata = saved_json.get("metadata", self.metadata)
             self.chatbot = saved_json["chatbot"]
+            self.roleplay_mode = saved_json.get("roleplay_mode", self.roleplay_mode)
+            self.ex_prompt = saved_json.get("ex_system",self.ex_prompt)
             return (
                 os.path.basename(self.history_file_path)[:-5],
                 saved_json["system"],
@@ -1065,6 +1067,7 @@ class BaseLLMModel:
                 self.frequency_penalty,
                 self.logit_bias,
                 self.user_identifier,
+                self.ex_prompt
             )
         except:
             # 没有对话历史或者对话历史解析失败
