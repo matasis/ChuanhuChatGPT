@@ -3,7 +3,7 @@
 
     //== API 配置 ==
     "openai_api_key": "", // 你的 OpenAI API Key，一般必填，若空缺则需在图形界面中填入API Key
-    "google_palm_api_key": "", // 你的 Google PaLM API Key，用于 Google PaLM 对话模型
+    "google_genai_api_key": "", // 你的 Google PaLM API Key，用于 Google PaLM 对话模型
     "xmchat_api_key": "", // 你的 xmchat API Key，用于 XMChat 对话模型
     "minimax_api_key": "", // 你的 MiniMax API Key，用于 MiniMax 对话模型
     "minimax_group_id": "", // 你的 MiniMax Group ID，用于 MiniMax 对话模型
@@ -17,7 +17,8 @@
     "claude_api_secret":"",// 你的 Claude API Secret，用于 Claude 对话模型
     "ernie_api_key": "",// 你的文心一言在百度云中的API Key，用于文心一言对话模型
     "ernie_secret_key": "",// 你的文心一言在百度云中的Secret Key，用于文心一言对话模型
-
+    "ollama_host": "", // 你的 Ollama Host，用于 Ollama 对话模型
+    "huggingface_auth_token": "", // 你的 Hugging Face API Token，用于访问有限制的模型
 
     //== Azure ==
     "openai_api_type": "openai", // 可选项：azure, openai

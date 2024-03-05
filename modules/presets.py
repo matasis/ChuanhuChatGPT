@@ -10,6 +10,8 @@ CHATGLM_MODEL = None
 CHATGLM_TOKENIZER = None
 LLAMA_MODEL = None
 LLAMA_INFERENCER = None
+GEMMA_MODEL = None
+GEMMA_TOKENIZER = None
 
 # ChatGPT 设置
 INITIAL_SYSTEM_PROMPT = "You are a helpful assistant."
@@ -64,7 +66,11 @@ ONLINE_MODELS = [
     "川虎助理",
     "川虎助理 Pro",
     "DALL-E 3",
+    "Gemini Pro",
+    "Gemini Pro Vision",
     "GooglePaLM",
+    "Gemma 2B",
+    "Gemma 7B",
     "xmchat",
     "Azure OpenAI",
     "yuanai-1.0-base_10B",
@@ -76,10 +82,12 @@ ONLINE_MODELS = [
     "讯飞星火大模型V3.0",
     "讯飞星火大模型V2.0",
     "讯飞星火大模型V1.5",
-    "Claude",
+    "Claude 3 Sonnet",
+    "Claude 3 Opus",
     "ERNIE-Bot-turbo",
     "ERNIE-Bot",
     "ERNIE-Bot-4",
+    "Ollama"
 ]
 
 LOCAL_MODELS = [
@@ -157,6 +165,18 @@ MODEL_METADATA = {
         "model_name": "Claude",
         "token_limit": 4096,
     },
+    "Claude 3 Sonnet": {
+        "model_name": "claude-3-sonnet-20240229",
+        "token_limit": 200000,
+        "max_generation": 4096,
+        "multimodal": True
+    },
+    "Claude 3 Opus": {
+        "model_name": "claude-3-opus-20240229",
+        "token_limit": 200000,
+        "max_generation": 4096,
+        "multimodal": True
+    },
     "ERNIE-Bot-turbo": {
         "model_name": "ERNIE-Bot-turbo",
         "token_limit": 1024,
@@ -169,6 +189,28 @@ MODEL_METADATA = {
         "model_name": "ERNIE-Bot-4",
         "token_limit": 1024,
     },
+    "Gemini Pro": {
+        "model_name": "gemini-pro",
+        "token_limit": 30720,
+    },
+    "Gemini Pro Vision": {
+        "model_name": "gemini-pro-vision",
+        "token_limit": 30720,
+    },
+    "Ollama": {
+        "model_name": "ollama",
+        "token_limit": 4096,
+    },
+    "Gemma 2B": {
+        "repo_id": "google/gemma-2b-it",
+        "model_name": "gemma-2b-it",
+        "token_limit": 8192,
+    },
+    "Gemma 7B": {
+        "repo_id": "google/gemma-7b-it",
+        "model_name": "gemma-7b-it",
+        "token_limit": 8192,
+    }
 }
 
 if os.environ.get('HIDE_LOCAL_MODELS', 'false') == 'true':
@@ -183,7 +225,12 @@ os.makedirs("lora", exist_ok=True)
 os.makedirs("history", exist_ok=True)
 for dir_name in os.listdir("models"):
     if os.path.isdir(os.path.join("models", dir_name)):
-        if dir_name not in MODELS:
+        display_name = None
+        for model_name, metadata in MODEL_METADATA.items():
+            if "model_name" in metadata and metadata["model_name"] == dir_name:
+                display_name = model_name
+                break
+        if display_name is None:
             MODELS.append(dir_name)
 
 TOKEN_OFFSET = 1000 # 模型的token上限减去这个值，得到软上限。到达软上限之后，自动尝试减少token占用。
@@ -208,6 +255,9 @@ HISTORY_NAME_METHODS = [
     i18n("第一条提问"),
     i18n("模型自动总结（消耗tokens）"),
 ]
+
+DIRECTLY_SUPPORTED_IMAGE_FORMATS = (".png", ".jpeg", ".gif", ".webp") # image types that can be directly uploaded, other formats will be converted to jpeg
+IMAGE_FORMATS = DIRECTLY_SUPPORTED_IMAGE_FORMATS + (".jpg", ".bmp", "heic", "heif") # all supported image formats
 
 
 WEBSEARCH_PTOMPT_TEMPLATE = """\

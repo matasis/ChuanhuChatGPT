@@ -375,6 +375,9 @@ def construct_text(role, text):
 def construct_user(text):
     return construct_text("user", text)
 
+def construct_image(path):
+    return construct_text("image", path)
+
 
 def construct_system(text):
     return construct_text("system", text)
@@ -1137,7 +1140,7 @@ def setup_wizard():
                     type=ConfigType.Password,
                 )
             ],
-            "是否设置默认 Google Palm API 密钥？如果设置，软件启动时会自动加载该API Key，无需在 UI 中手动输入。如果不设置，可以在软件启动后手动输入 API Key。",
+            "是否设置默认 Google AI Studio API 密钥？如果设置，软件启动时会自动加载该API Key，无需在 UI 中手动输入。如果不设置，可以在软件启动后手动输入 API Key。",
         )
         # XMChat
         wizard.set(

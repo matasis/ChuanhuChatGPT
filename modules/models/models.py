@@ -105,8 +105,13 @@ def get_model(
             msg = i18n("启用的工具：") + ", ".join([i.name for i in model.tools])
         elif model_type == ModelType.GooglePaLM:
             from .GooglePaLM import Google_PaLM_Client
-            access_key = os.environ.get("GOOGLE_PALM_API_KEY", access_key)
+            access_key = os.environ.get("GOOGLE_GENAI_API_KEY", access_key)
             model = Google_PaLM_Client(
+                model_name, access_key, user_name=user_name)
+        elif model_type == ModelType.GoogleGemini:
+            from .GoogleGemini import GoogleGeminiClient
+            access_key = os.environ.get("GOOGLE_GENAI_API_KEY", access_key)
+            model = GoogleGeminiClient(
                 model_name, access_key, user_name=user_name)
         elif model_type == ModelType.LangchainChat:
             from .Azure import Azure_OpenAI_Client
@@ -122,7 +127,7 @@ def get_model(
                 "SPARK_API_KEY"), os.getenv("SPARK_API_SECRET"), user_name=user_name)
         elif model_type == ModelType.Claude:
             from .Claude import Claude_Client
-            model = Claude_Client(model_name="claude-2", api_secret=os.getenv("CLAUDE_API_SECRET"))
+            model = Claude_Client(model_name=model_name, api_secret=os.getenv("CLAUDE_API_SECRET"))
         elif model_type == ModelType.Qwen:
             from .Qwen import Qwen_Client
             model = Qwen_Client(model_name, user_name=user_name)
@@ -133,8 +138,21 @@ def get_model(
             from .DALLE3 import OpenAI_DALLE3_Client
             access_key = os.environ.get("OPENAI_API_KEY", access_key)
             model = OpenAI_DALLE3_Client(model_name, api_key=access_key, user_name=user_name)
+        elif model_type == ModelType.Ollama:
+            from .Ollama import OllamaClient
+            ollama_host = os.environ.get("OLLAMA_HOST", access_key)
+            model = OllamaClient(model_name, user_name=user_name, backend_model=lora_model_path)
+            model_list = model.get_model_list()
+            lora_selector_visibility = True
+            lora_choices = [i["name"] for i in model_list["models"]]
+        elif model_type == ModelType.GoogleGemma:
+            from .GoogleGemma import GoogleGemmaClient
+            model = GoogleGemmaClient(
+                model_name, access_key, user_name=user_name)
         elif model_type == ModelType.Unknown:
-            raise ValueError(f"未知模型: {model_name}")
+            raise ValueError(f"Unknown model: {model_name}")
+        else:
+            raise ValueError(f"Unimplemented model type: {model_type}")
         logging.info(msg)
     except Exception as e:
         import traceback
