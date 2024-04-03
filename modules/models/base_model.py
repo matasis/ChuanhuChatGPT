@@ -1,36 +1,28 @@
 from __future__ import annotations
 
-import asyncio
+import base64
 import json
 import logging
 import os
-import pathlib
-import base64
 import shutil
-import sys
+import time
 import traceback
 from collections import deque
 from enum import Enum
+from io import BytesIO
 from itertools import islice
 from threading import Condition, Thread
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
-import PIL
-from io import BytesIO
+from typing import Any, Dict, List, Optional
 
-import aiohttp
 import colorama
-import commentjson as cjson
-import requests
+import PIL
 import urllib3
 from duckduckgo_search import DDGS
 from huggingface_hub import hf_hub_download
-from langchain.callbacks.base import BaseCallbackHandler, BaseCallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chat_models.base import BaseChatModel
-from langchain.input import print_text
 from langchain.schema import (AgentAction, AgentFinish, AIMessage, BaseMessage,
-                              HumanMessage, LLMResult, SystemMessage)
-from tqdm import tqdm
+                              HumanMessage, SystemMessage)
 
 from .. import shared
 from ..config import retrieve_proxy
@@ -247,7 +239,7 @@ class BaseLLMModel:
         temperature=1.0,
         top_p=1.0,
         n_choices=1,
-        stop="",
+        stop=[],
         max_generation_token=None,
         presence_penalty=0,
         frequency_penalty=0,
@@ -414,12 +406,12 @@ class BaseLLMModel:
                     image_files.append(f)
                 else:
                     other_files.append(f)
-            if self.multimodal:
-                if image_files:
+            if image_files:
+                if self.multimodal:
                     chatbot.extend([(((image.name, None)), None) for image in image_files])
                     self.history.extend([construct_image(image.name) for image in image_files])
-            else:
-                gr.Warning(i18n("该模型不支持多模态输入"))
+                else:
+                    gr.Warning(i18n("该模型不支持多模态输入"))
             if other_files:
                 try:
                     construct_index(self.api_key, file_src=files)
@@ -428,7 +420,9 @@ class BaseLLMModel:
                     import traceback
                     traceback.print_exc()
                     status = i18n("索引构建失败！") + str(e)
-        if not other_files:
+        if other_files:
+            other_files = [f.name for f in other_files]
+        else:
             other_files = None
         return gr.File.update(value=other_files), chatbot, status
 
@@ -666,6 +660,7 @@ class BaseLLMModel:
         else:
             self.history.append(construct_user(inputs))
 
+        start_time = time.time()
         try:
             if stream:
                 logging.debug("使用流式传输")
@@ -690,7 +685,7 @@ class BaseLLMModel:
             traceback.print_exc()
             status_text = STANDARD_ERROR_MSG + beautify_err_msg(str(e))
             yield chatbot, status_text
-
+        end_time = time.time()
         if len(self.history) > 1 and self.history[-1]["content"] != fake_inputs:
             logging.info(
                 "回答为："
@@ -698,6 +693,7 @@ class BaseLLMModel:
                 + f"{self.history[-1]['content']}"
                 + colorama.Style.RESET_ALL
             )
+            logging.info(i18n("Tokens per second：{token_generation_speed}").format(token_generation_speed=str(self.all_token_counts[-1] / (end_time - start_time))))
 
         if limited_context:
             # self.history = self.history[-4:]
@@ -1200,6 +1196,7 @@ class BaseLLMModel:
 
     def clear_cuda_cache(self):
         import gc
+
         import torch
         gc.collect()
         torch.cuda.empty_cache()
