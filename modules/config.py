@@ -5,9 +5,11 @@ import logging
 import sys
 import commentjson as json
 import colorama
+from collections import defaultdict
 
 from . import shared
 from . import presets
+from .presets import i18n
 
 
 __all__ = [
@@ -100,14 +102,25 @@ else:
     sensitive_id = config.get("sensitive_id", "")
     sensitive_id = os.environ.get("SENSITIVE_ID", sensitive_id)
 
+if "extra_model_metadata" in config:
+    presets.MODEL_METADATA.update(config["extra_model_metadata"])
+    logging.info(i18n("已添加 {extra_model_quantity} 个额外的模型元数据").format(extra_model_quantity=len(config["extra_model_metadata"])))
+
+_model_metadata = {}
+for k, v in presets.MODEL_METADATA.items():
+    temp_dict = presets.DEFAULT_METADATA.copy()
+    temp_dict.update(v)
+    _model_metadata[k] = temp_dict
+presets.MODEL_METADATA = _model_metadata
+
 if "available_models" in config:
     presets.MODELS = config["available_models"]
-    logging.info(f"已设置可用模型：{config['available_models']}")
+    logging.info(i18n("已设置可用模型：{available_models}").format(available_models=config["available_models"]))
 
 # 模型配置
 if "extra_models" in  config:
     presets.MODELS.extend(config["extra_models"])
-    logging.info(f"已添加额外的模型：{config['extra_models']}")
+    logging.info(i18n("已添加额外的模型：{extra_models}").format(extra_models=config["extra_models"]))
 
 HIDE_MY_KEY = config.get("hide_my_key", False)
 
@@ -157,6 +170,9 @@ os.environ["ERNIE_SECRETKEY"] = ernie_secret_key
 
 ollama_host = config.get("ollama_host", "")
 os.environ["OLLAMA_HOST"] = ollama_host
+
+groq_api_key = config.get("groq_api_key", "")
+os.environ["GROQ_API_KEY"] = groq_api_key
 
 load_config_to_environ(["openai_api_type", "azure_openai_api_key", "azure_openai_api_base_url",
                        "azure_openai_api_version", "azure_deployment_name", "azure_embedding_deployment_name", "azure_embedding_model_name"])
@@ -274,6 +290,9 @@ else:
         {"left": "\\(", "right": "\\)", "display": False},
         {"left": "\\[", "right": "\\]", "display": True},
     ]
+# ![IMPORTANT] PATCH gradio 4.26, disable latex for now
+user_latex_option = "disabled"
+latex_delimiters_set = []
 
 # 处理advance docs
 advance_docs = defaultdict(lambda: defaultdict(dict))
