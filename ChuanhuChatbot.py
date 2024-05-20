@@ -500,7 +500,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             add_to_models_btn = gr.Button(
                                 i18n("添加训练好的模型到模型列表"), interactive=False)
 
-            with gr.Box(elem_id="conversation-edit"):
+            with gr.Group(elem_id="conversation-edit"):
                 with gr.Row():
                     gr.Markdown("## "+i18n("修改"))
                     gr.HTML(get_html("close_btn.html").format(
