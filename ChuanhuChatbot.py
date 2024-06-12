@@ -741,7 +741,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     # model_select_dropdown.change(
     #     toggle_file_type, [model_select_dropdown], [index_files], show_progress=False)
     lora_select_dropdown.change(get_model, [model_select_dropdown, lora_select_dropdown, user_api_key, temperature_slider,
-                                top_p_slider, systemPromptTxt, user_name, current_model], [current_model, status_display, chatbot, modelDescription], show_progress=True)
+                                top_p_slider, systemPromptTxt, user_name, current_model], [current_model, status_display, chatbot, lora_select_dropdown, user_api_key, keyTxt, modelDescription], show_progress=True)
     roleplay_mode_checkbox.change(
         set_roleplay_mode, [current_model, roleplay_mode_checkbox], None)
 
