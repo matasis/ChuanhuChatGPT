@@ -887,13 +887,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         fn=lambda value: gr.Checkbox(value=value),
         inputs=[use_websearch_checkbox],
         outputs=[use_websearch_checkbox],
-        _js='(a)=>{return bgChangeOnlineSearch(a);}'
+        js='(a)=>{return bgChangeOnlineSearch(a);}'
     )
     changeRoleplayModeBtn.click(
         fn=lambda value: gr.Checkbox.update(value=value),
         inputs=[roleplay_mode_checkbox],
         outputs=[roleplay_mode_checkbox],
-        _js='(a)=>{return bgChangeRoleplayMode(a);}'
+        js='(a)=>{return bgChangeRoleplayMode(a);}'
     )
     historySelectBtn.click(  # This is an experimental feature... Not actually used.
         fn=load_chat_history,
