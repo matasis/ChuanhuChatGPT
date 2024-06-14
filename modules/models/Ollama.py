@@ -51,8 +51,8 @@ class OllamaClient(BaseLLMModel):
         if self.backend_model == "":
             return i18n("请先选择Ollama后端模型\n\n")
         client = Client(host=self.ollama_host)
-        if self.history[0]["role"]!="assistant":
-            self.history=[{"role":"assistant","content":self.system_prompt}]+self.history
+        if self.history[0]["role"]!="system":
+            self.history=[{"role":"system","content":self.system_prompt}]+self.history
         else:
             self.history[0]["content"]=self.system_prompt
         print(self.history)
