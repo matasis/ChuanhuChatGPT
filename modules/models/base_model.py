@@ -302,6 +302,7 @@ class BaseLLMModel:
         self.roleplay_mode = False
         self.ex_prompt = ""
         self.temp_prompt = ""
+        self.first_line = ""
         # self.user2_prompt = ""
         self.roleplay_mode = False
 
@@ -953,6 +954,24 @@ class BaseLLMModel:
             chatbot[-1][1] = convert_bot_before_marked(ai_input)
         msg = "修改一组记录"
         return chatbot, msg
+
+    def set_first_line(self,chatbot,first_line):
+        if (history_len := len(self.history)) == 0:
+            self.history.append({'role':'assistant', 'content':first_line})
+        elif history_len == 1:
+            self.history[0]['content'] = first_line
+        else:
+            msg = "对话已经开始，无法修改。"
+            return chatbot, self.first_line, msg
+        if(chatbot_len:=len(chatbot))==0:
+            chatbot.append([convert_user_before_marked(""), convert_bot_before_marked(first_line)])
+        elif chatbot_len == 1:
+            chatbot[0][1] = convert_bot_before_marked(first_line)
+        self.chatbot = chatbot
+        self.first_line = first_line
+        msg = "成功"
+        return chatbot, first_line, msg
+
 
     def set_ex_prompt(self, system_prompt, ex_prompt):
         self.temp_prompt = system_prompt

@@ -282,6 +282,14 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 lines=8
                             )
                         gr.Markdown("---", elem_classes="hr-line")
+                        with gr.Accordion(label="第一句话", open=False):
+                            assiantFirstTxt = gr.Textbox(
+                                show_label=True,
+                                placeholder=i18n("在这里输入ai的第一句话..."),
+                                label="first",
+                                lines=8
+                            )
+                        gr.Markdown("---", elem_classes="hr-line")
                         with gr.Accordion(label=i18n("知识库"), open=False):
                             use_websearch_checkbox = gr.Checkbox(label=i18n(
                                 "使用在线搜索"), value=False, elem_classes="switch-checkbox", elem_id="gr-websearch-cb", visible=False)
@@ -749,6 +757,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     systemPromptTxt.change(set_system_prompt, [
                            current_model, systemPromptTxt], None)
     exPromptTxt.change(set_ex_prompt, [current_model, systemPromptTxt, exPromptTxt], None)
+    assiantFirstTxt.change(set_first_line, [current_model, chatbot, assiantFirstTxt],[chatbot, assiantFirstTxt, status_display])
     templateRefreshBtn.click(get_template_dropdown, None, [
                              templateFileSelectDropdown])
     templateFileSelectDropdown.input(

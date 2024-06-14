@@ -89,6 +89,9 @@ def change_last_conversation(current_model, *args):
 def exchange_roles(current_model, *args):
     return current_model.exchange_roles(*args)
 
+def set_first_line(current_model, *args):
+    return current_model.set_first_line(*args)
+
 def set_ex_prompt(current_model, *args):
     return current_model.set_ex_prompt(*args)
 
