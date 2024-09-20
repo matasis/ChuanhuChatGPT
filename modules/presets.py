@@ -59,7 +59,8 @@ ONLINE_MODELS = [
     "GPT4 Turbo",
     "GPT3.5 Turbo Instruct",
     "GPT4",
-    "GPT4 32K",
+    "o1-preview",
+    "o1-mini",
     "Claude 3 Haiku",
     "Claude 3.5 Sonnet",
     "Claude 3 Opus",
@@ -84,11 +85,19 @@ ONLINE_MODELS = [
     "yuanai-1.0-rhythm_poems",
     "minimax-abab5-chat",
     "midjourney",
+    # 兼容旧配置文件，待删除
     "讯飞星火大模型V4.0",
     "讯飞星火大模型V3.5",
     "讯飞星火大模型V3.0",
     "讯飞星火大模型V2.0",
     "讯飞星火大模型V1.5",
+    # 新的名称
+    "讯飞星火4.0 Ultra",
+    "讯飞星火Max",
+    "讯飞星火Pro 128K",
+    "讯飞星火Pro",
+    "讯飞星火V2.0",
+    "讯飞星火Lite",
     "ERNIE-Bot-turbo",
     "ERNIE-Bot",
     "ERNIE-Bot-4",
@@ -133,6 +142,7 @@ DEFAULT_METADATA = {
     "presence_penalty": 0.0,
     "frequency_penalty": 0.0,
     "logit_bias": None,
+    "stream": True,
     "metadata": {} # additional metadata for the model
 }
 
@@ -246,6 +256,30 @@ MODEL_METADATA = {
         "description": "gpt4omini_description",
         "token_limit": 128000,
         "multimodal": True,
+        "placeholder": {
+            "logo": "file=web_assets/model_logos/openai-black.webp",
+            "slogan": i18n("gpt_default_slogan"),
+        }
+    },
+    "o1-preview": {
+        "model_name": "o1-preview",
+        "description": "o1_description",
+        "token_limit": 128000,
+        "multimodal": False,
+        "model_type": "OpenAIVision",
+        "stream": False,
+        "placeholder": {
+            "logo": "file=web_assets/model_logos/openai-black.webp",
+            "slogan": i18n("gpt_default_slogan"),
+        }
+    },
+    "o1-mini": {
+        "model_name": "o1-mini",
+        "description": "o1_description",
+        "token_limit": 128000,
+        "multimodal": False,
+        "model_type": "OpenAIVision",
+        "stream": False,
         "placeholder": {
             "logo": "file=web_assets/model_logos/openai-black.webp",
             "slogan": i18n("gpt_default_slogan"),
@@ -382,11 +416,93 @@ MODEL_METADATA = {
     "yuanai-1.0-rhythm_poems": {"model_name": "yuanai-1.0-rhythm_poems"},
     "minimax-abab5-chat": {"model_name": "minimax-abab5-chat"},
     "midjourney": {"model_name": "midjourney"},
-    "讯飞星火大模型V4.0": {"model_name": "讯飞星火大模型V4.0"},
-    "讯飞星火大模型V3.5": {"model_name": "讯飞星火大模型V3.5"},
-    "讯飞星火大模型V3.0": {"model_name": "讯飞星火大模型V3.0"},
-    "讯飞星火大模型V2.0": {"model_name": "讯飞星火大模型V2.0"},
-    "讯飞星火大模型V1.5": {"model_name": "讯飞星火大模型V1.5"},
+    # 兼容旧配置文件，待删除
+    "讯飞星火大模型V4.0": {
+        "model_name": "讯飞星火大模型V4.0",
+        "token_limit": 8192,
+        "metadata": {
+            "path": "/v4.0/chat",
+            "domain": "4.0Ultra"
+        }
+    },
+    "讯飞星火大模型V3.5": {
+        "model_name": "讯飞星火大模型V3.5",
+        "token_limit": 8192,
+        "metadata": {
+            "path": "/v3.5/chat",
+            "domain": "generalv3.5"
+        }
+    },
+    "讯飞星火大模型V3.0": {
+        "model_name": "讯飞星火大模型V3.0",
+        "token_limit": 8192,
+        "metadata": {
+            "path": "/v3.1/chat",
+            "domain": "generalv3"
+        }
+    },
+    "讯飞星火大模型V2.0": {
+        "model_name": "讯飞星火大模型V2.0",
+        "metadata": {
+            "path": "/v2.1/chat",
+            "domain": "generalv2"
+        }
+    },
+    "讯飞星火大模型V1.5": {
+        "model_name": "讯飞星火大模型V1.5",
+        "metadata": {
+            "path": "/v1.1/chat",
+            "domain": "general"
+        }
+    },
+    # 新的名称
+    "讯飞星火4.0 Ultra": {
+        "model_name": "讯飞星火4.0 Ultra",
+        "token_limit": 8192,
+        "metadata": {
+            "path": "/v4.0/chat",
+            "domain": "4.0Ultra"
+        }
+    },
+    "讯飞星火Max": {
+        "model_name": "讯飞星火Max",
+        "token_limit": 8192,
+        "metadata": {
+            "path": "/v3.5/chat",
+            "domain": "generalv3.5"
+        }
+    },
+
+    "讯飞星火Pro 128K": {
+        "model_name": "讯飞星火Pro 128K",
+        "token_limit": 131072, # 128 * 1024
+        "metadata": {
+            "path": "/chat/pro-128k",
+            "domain": "pro-128k"
+        }
+    },
+    "讯飞星火Pro": {
+        "model_name": "讯飞星火Pro",
+        "token_limit": 8192,
+        "metadata": {
+            "path": "/v3.1/chat",
+            "domain": "generalv3"
+        }
+    },
+    "讯飞星火V2.0": {
+        "model_name": "讯飞星火V2.0",
+        "metadata": {
+            "path": "/v2.1/chat",
+            "domain": "generalv2"
+        }
+    },
+    "讯飞星火Lite": {
+        "model_name": "讯飞星火Lite",
+        "metadata": {
+            "path": "/v1.1/chat",
+            "domain": "general"
+        }
+    }
 }
 
 if os.environ.get('HIDE_LOCAL_MODELS', 'false') == 'true':
